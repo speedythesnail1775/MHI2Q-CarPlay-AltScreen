@@ -69,7 +69,7 @@ if [ "$TESTING" = 1 ]; then
     mount_rw(){ :; }
     mount_ro(){ :; }
 else
-    for candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+    for candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
         if [ -d "$candidate/Toolbox" ]; then VOLUME=$candidate; break; fi
     done
     [ -n "$VOLUME" ] || fail "no Toolbox SD card discovered"

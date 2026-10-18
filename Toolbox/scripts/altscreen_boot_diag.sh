@@ -614,7 +614,7 @@ while [ -f "$ENABLED" ]; do
         storage_candidate=${ALTSCREEN_CHAIN_VOLUME:-}
         [ ! -d "$storage_candidate/Toolbox" ] || storage_volume=$storage_candidate
     else
-        for storage_candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+        for storage_candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
             if [ -d "$storage_candidate/Toolbox" ] && { [ -d "$storage_candidate/MMI-Cockpit-Carplay/backup/original" ] || [ -d "$storage_candidate/Backup/AltScreenChain/original" ]; }; then
                 storage_volume=$storage_candidate
                 break

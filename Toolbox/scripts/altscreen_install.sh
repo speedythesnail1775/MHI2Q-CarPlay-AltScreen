@@ -37,7 +37,8 @@ if [ "$TESTING" = 1 ]; then
     case "$ROOT" in /tmp/*|/var/tmp/*) ;; *) echo "RESULT: FAILED - invalid ALTSCREEN_CHAIN_ROOT"; exit 2 ;; esac
     case "$VOLUME" in /tmp/*|/var/tmp/*) ;; *) echo "RESULT: FAILED - invalid ALTSCREEN_CHAIN_VOLUME"; exit 2 ;; esac
 else
-    for candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+    # /mnt/ota/carplay-altscreen: internal staging volume for SSH installs (Tools/ansible), checked before the SD card
+    for candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
         if [ -d "$candidate/Toolbox" ]; then VOLUME=$candidate; break; fi
     done
 fi

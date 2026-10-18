@@ -9,7 +9,7 @@ COMMIT_DURABLE=0
 
 ensure_dirs(){ for d in "$@"; do [ -d "$d" ] || mkdir -p "$d" || return 1; done; }
 
-SD_CANDIDATES="/net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1"
+SD_CANDIDATES="/mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1"
 
 sd_probe_write(){
   base=$1; label=$2

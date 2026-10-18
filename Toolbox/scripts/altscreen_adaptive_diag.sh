@@ -49,7 +49,7 @@ find_volume() {
         candidate=${ALTSCREEN_CHAIN_VOLUME:-}
         [ -d "$candidate/Toolbox" ] && VOLUME=$candidate
     else
-        for candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+        for candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
             if [ -d "$candidate/Toolbox" ] && { [ -d "$candidate/MMI-Cockpit-Carplay/backup/original" ] || [ -d "$candidate/Backup/AltScreenChain/original" ]; }; then
                 VOLUME=$candidate
                 break

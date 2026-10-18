@@ -37,7 +37,7 @@ if [ "${ALTS_START_CAPTURED:-0}" != 1 ]; then
     if [ "${ALTSCREEN_CHAIN_TESTING:-0}" = 1 ]; then
         journal_volume=${ALTSCREEN_CHAIN_VOLUME:-}
     else
-        for candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+        for candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
             if [ -d "$candidate/Toolbox" ]; then journal_volume=$candidate; break; fi
         done
     fi
@@ -117,7 +117,7 @@ if [ "$TESTING" = 1 ]; then
     case "$DEVICE_ROOT" in /tmp/*|/var/tmp/*) ;; *) echo "FAIL: invalid ALTSCREEN_CHAIN_ROOT"; exit 2 ;; esac
     case "$VOLUME" in /tmp/*|/var/tmp/*) ;; *) echo "FAIL: invalid ALTSCREEN_CHAIN_VOLUME"; exit 2 ;; esac
 else
-    for candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+    for candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
         if [ -d "$candidate/Toolbox" ]; then VOLUME=$candidate; break; fi
     done
 fi

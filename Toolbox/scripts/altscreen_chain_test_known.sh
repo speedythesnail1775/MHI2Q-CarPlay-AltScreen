@@ -134,7 +134,7 @@ if [ "${ALTSCREEN_CHAIN_TESTING:-0}" = "1" ]; then
 else
     # Own discovery here: older Toolbox helpers only assign VOLUME and do not
     # provide mountsd_make_writable(). Do not source a version-dependent helper.
-    for candidate in /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
+    for candidate in /mnt/ota/carplay-altscreen /net/mmx/fs/sda0 /net/mmx/fs/sda1 /net/mmx/fs/sdb0 /net/mmx/fs/sdb1 /fs/sda0 /fs/sda1 /fs/sdb0 /fs/sdb1; do
         if [ -d "$candidate/Toolbox" ]; then VOLUME=$candidate; break; fi
     done
     [ -n "${VOLUME:-}" ] || fail "no Toolbox SD card discovered"
