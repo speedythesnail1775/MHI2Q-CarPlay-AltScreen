@@ -225,6 +225,8 @@
           args:
             chdir: "{{ altscreen_release_dir }}"
           delegate_to: localhost
+          environment:
+            COPYFILE_DISABLE: "1"  # macOS tar: no AppleDouble ._* sidecars
           changed_when: true
 
         - name: Measure the stage tar
@@ -361,8 +363,10 @@
                     fail=1
                   fi
                 done < "$vol/CKSUMS"
+                want=$(wc -l < "$vol/CKSUMS" | tr -d ' '); have=$(find "$vol/Toolbox" -type f | wc -l | tr -d ' ')
+                [ "$want" = "$have" ] || { echo "EXTRA_FILES: manifest=$want on_unit=$have"; fail=1; }
                 [ "$fail" -eq 0 ] || { echo "REMOTE_VERIFY=FAIL"; exit 1; }
-                echo "REMOTE_VERIFY=PASS files=$(wc -l < "$vol/CKSUMS")"
+                echo "REMOTE_VERIFY=PASS files=$want"
               changed_when: false
 
         - name: Drop the temporary probe manifest when already staged
@@ -384,22 +388,50 @@
                 echo "BACKUP_DIR=absent"
               changed_when: false
 
-            - name: Upload the backup dir
+            # scp -r cannot create a missing remote directory (SFTP realpath
+            # fails), so the backup travels as a tar + cksum manifest like
+            # the Toolbox payload.
+            - name: Build backup tar + cksum manifest locally
+              ansible.builtin.shell: |
+                set -o pipefail
+                sh "{{ altscreen_manifest_helper }}" . > "{{ altscreen_local_dir }}/backup.cksums"
+                find . -type f | LC_ALL=C sort | tar -cf "{{ altscreen_local_dir }}/altscreen-backup.tar" -T -
+              args:
+                chdir: "{{ altscreen_backup_dir }}"
+              delegate_to: localhost
+              environment:
+                COPYFILE_DISABLE: "1"
+              changed_when: true
+
+            - name: Upload backup tar + manifest
               ansible.builtin.command: >-
-                {{ altscreen_scp }} -r
-                {{ altscreen_backup_dir }}
-                {{ ansible_user }}@{{ ansible_host }}:{{ altscreen_volume }}/MMI-Cockpit-Carplay
+                {{ altscreen_scp }}
+                {{ altscreen_local_dir }}/altscreen-backup.tar
+                {{ altscreen_local_dir }}/backup.cksums
+                {{ ansible_user }}@{{ ansible_host }}:/tmp/
               delegate_to: localhost
               environment:
                 SSHPASS: "{{ ansible_password | default('') }}"
               changed_when: true
 
-            - name: Verify the backup dir landed
+            - name: Extract and verify the backup dir on the unit
               ansible.builtin.raw: |
                 export PATH={{ qnx_path }}
-                [ -d "{{ altscreen_volume }}/MMI-Cockpit-Carplay" ] || { echo "BACKUP_UPLOAD=FAIL" >&2; exit 1; }
-                echo "BACKUP_UPLOAD=PASS {{ altscreen_volume }}/MMI-Cockpit-Carplay"
-              changed_when: false
+                dst="{{ altscreen_volume }}/MMI-Cockpit-Carplay"
+                mkdir -p "$dst" && cd "$dst" && tar -xf /tmp/altscreen-backup.tar || { echo "BACKUP_EXTRACT=FAIL" >&2; exit 1; }
+                file_cksum(){ set -- $(cksum < "$1" 2>/dev/null) || return 1; [ -n "${2:-}" ] || return 1; printf '%s %s\n' "$1" "$2"; }
+                bad=0
+                while IFS=' ' read -r crc sz rel; do
+                  [ -n "${rel:-}" ] || continue
+                  got=$(file_cksum "$rel") || got=""
+                  [ "$got" = "$crc $sz" ] || { echo "MISMATCH: $rel ($got != $crc $sz)" >&2; bad=1; }
+                done < /tmp/backup.cksums
+                want=$(wc -l < /tmp/backup.cksums | tr -d ' '); have=$(find . -type f | wc -l | tr -d ' ')
+                [ "$want" = "$have" ] || { echo "EXTRA_FILES: manifest=$want on_unit=$have" >&2; bad=1; }
+                rm -f /tmp/altscreen-backup.tar /tmp/backup.cksums
+                [ "$bad" -eq 0 ] || { echo "BACKUP_UPLOAD=FAIL" >&2; exit 1; }
+                echo "BACKUP_UPLOAD=PASS $dst"
+              changed_when: true
 
         - name: Stage result
           ansible.builtin.debug:

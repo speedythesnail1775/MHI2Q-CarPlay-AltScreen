@@ -55,7 +55,12 @@ Consequences:
   `/mnt/ota/carplay-altscreen` exists — an internal copy can never be
   picked up by accident.
 - The playbook exports `ALTS_VOLUME=/mnt/ota/carplay-altscreen` before
-  invoking any upstream script.
+  invoking any upstream script. **The staged release must therefore
+  contain `ALTS_VOLUME`-aware scripts** (a release built from a tree that
+  includes the companion scripts change). Staging an older package is
+  harmless but useless: its scripts ignore `ALTS_VOLUME`, scan the SD
+  slots instead, and the installer stops at its own package check with
+  "Nothing was changed" (observed with the stock V3.8 ZIP).
 - `stage` copies a *verified* release into
   `/mnt/ota/carplay-altscreen/Toolbox`; `install`/`restore` run from
   there.
@@ -187,8 +192,21 @@ yourself to activate or to return to stock.
 
 ## Tested
 
-This playbook has **not yet been run on a vehicle** — we will post
-results. The equivalent install flow (stage → verify → installer →
-fetch backup) was used on a 2018 Audi Q5 (North America),
-`MHI2Q_US_AUG22_P4246` / MU 1320 with the V3.8 release, through an
-earlier version of these scripts.
+Run with this exact playbook on 2026-10-21 on a 2018 Audi Q5 (USA /
+North America), `MHI2Q_US_AUG22_P4246` / MU 1320, V3.8 scripts with the
+companion `ALTS_VOLUME` change, over SSH through a jump host with
+password auth (`sshpass`). Sequence and results:
+
+| step | result |
+|---|---|
+| `status` | `train=MHI2Q_US_AUG22_P4246 mu=1320`, `STAGED=no` |
+| `stage` (+ `altscreen_backup_dir`) | `SPACE_CHECK` passed on QNX `df -k`; 185/185 Toolbox files and 44/44 backup files verified by `cksum` on the unit; `STAGE=EMPTY` |
+| `install` (RGI WITH, card WITH) | installer: `Previous version found - removing it first` → `RESULT: SUCCESS`; recovery copy fetched |
+| `restore` | `RESULT: SUCCESS` — no `ALT111`/`ALTSCREEN` startup blocks, no `carplay_hook.jar`, no runtime dir left on the unit |
+| `install` again | `OK - none found` → `RESULT: SUCCESS` |
+
+Two defects were found by this run and fixed in the same change: `scp -r`
+cannot create a missing remote directory (the backup dir now travels as
+a tar + manifest like the Toolbox payload), and macOS `tar` silently
+added AppleDouble `._*` sidecar files to the upload (now suppressed with
+`COPYFILE_DISABLE=1`, and the on-unit verify fails on any extra file).
